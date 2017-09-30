@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 use std::result::Result as StdResult;
-use {Run, base64};
+use Run;
 use super::file_write::FileWrite;
 
 quick_error! {
@@ -47,25 +47,29 @@ pub fn save<W: FileWrite>(run: &Run, mut writer: W) -> Result<()> {
         if i != 0 {
             write!(writer, ",")?;
         }
-        if !writer.supports_other_files() || !segment.icon().url().starts_with("data:;base64,") {
+        let icon = segment.icon();
+        if !writer.supports_other_files() || icon.url().is_empty() {
             write!(writer, r#""""#)?;
         } else {
             write!(writer, r#""icon{}""#, i)?;
+            if let Some(extension) = icon.file_extension() {
+                write!(writer, ".{}", extension)?;
+            }
         }
     }
     writeln!(writer)?;
 
     if writer.supports_other_files() {
         for (i, segment) in run.segments().iter().enumerate() {
-            // TODO guess file extension
-            let file = writer.start_other_file(&format!(r#""icon{}""#, i))?;
-            let url = segment.icon().url();
-            if url.starts_with("data:;base64,") {
-                let src = &url["data:;base64,".len()..];
-                buf.clear();
-                if base64::decode_config_buf(src, base64::STANDARD, &mut buf).is_ok() {
-                    file.write_all(&buf)?;
-                }
+            let icon = segment.icon();
+            let mut name = format!(r#""icon{}""#, i);
+            if let Some(extension) = icon.file_extension() {
+                name.push('.');
+                name.push_str(extension);
+            }
+            let file = writer.start_other_file(&name)?;
+            if icon.decode_data(&mut buf).is_ok() {
+                file.write_all(&buf)?;
             }
         }
     }

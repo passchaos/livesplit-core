@@ -7,7 +7,8 @@ use std::fs::File;
 use std::io::{self, BufReader, Read};
 use std::path::Path;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
-use base64::{self, STANDARD};
+use base64::{self, DecodeError, STANDARD};
+use imagelib::{guess_format, ImageFormat};
 
 static LAST_IMAGE_ID: AtomicUsize = ATOMIC_USIZE_INIT;
 
@@ -15,6 +16,7 @@ static LAST_IMAGE_ID: AtomicUsize = ATOMIC_USIZE_INIT;
 pub struct Image {
     url: String,
     id: usize,
+    format: Option<ImageFormat>,
 }
 
 impl PartialEq for Image {
@@ -40,6 +42,7 @@ impl Image {
         let mut image = Image {
             url: String::new(),
             id: 0,
+            format: None,
         };
         image.modify(data);
         image
@@ -67,6 +70,63 @@ impl Image {
     }
 
     #[inline]
+    pub fn format(&self) -> Option<ImageFormat> {
+        self.format
+    }
+
+    #[inline]
+    pub fn mime_type(&self) -> Option<&'static str> {
+        self.format.map(|format| {
+            use self::ImageFormat::*;
+            match format {
+                BMP => "image/bmp",
+                GIF => "image/gif",
+                HDR => "image/vnd.radiance",
+                ICO => "image/x-icon",
+                JPEG => "image/jpeg",
+                PNG => "image/png",
+                PPM => "image/x-portable-pixmap",
+                TGA => "image/x-tga",
+                TIFF => "image/tiff",
+                WEBP => "image/webp",
+            }
+        })
+    }
+
+    #[inline]
+    pub fn file_extension(&self) -> Option<&'static str> {
+        self.format.map(|format| {
+            use self::ImageFormat::*;
+            match format {
+                BMP => "bmp",
+                GIF => "gif",
+                HDR => "hdr",
+                ICO => "ico",
+                JPEG => "jpg",
+                PNG => "png",
+                PPM => "ppm",
+                TGA => "tga",
+                TIFF => "tiff",
+                WEBP => "webp",
+            }
+        })
+    }
+
+    #[inline]
+    pub fn decode_data(&self, buf: &mut Vec<u8>) -> Result<(), DecodeError> {
+        let url = self.url();
+        buf.clear();
+        if url.starts_with("data:") {
+            let url = &url["data:".len()..];
+            if let Some(index) = url.find(";base64,") {
+                let src = &url[index + ";base64,".len()..];
+                base64::decode_config_buf(src, base64::STANDARD, buf)?;
+            }
+        }
+        Ok(())
+    }
+
+    #[inline]
     pub fn check_for_change(&self, old_id: &mut usize) -> Option<&str> {
         if *old_id != self.id {
             *old_id = self.id;
@@ -81,8 +141,15 @@ impl Image {
         self.url.clear();
 
         if !data.is_empty() {
-            self.url.push_str("data:;base64,");
+            self.url.push_str("data:");
+            self.format = guess_format(data).ok();
+            if let Some(mime_type) = self.mime_type() {
+                self.url.push_str(mime_type);
+            }
+            self.url.push_str(";base64,");
             base64::encode_config_buf(data, STANDARD, &mut self.url);
+        } else {
+            self.format = None;
         }
     }
 

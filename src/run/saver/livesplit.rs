@@ -116,31 +116,27 @@ fn image<W: Write>(
     buf: &mut Vec<u8>,
     image_buf: &mut Cow<[u8]>,
 ) -> Result<()> {
-    let url = image.url();
-    if url.starts_with("data:;base64,") {
-        let src = &url["data:;base64,".len()..];
+    if image.decode_data(buf).is_ok() && !buf.is_empty() {
+        let len = buf.len();
+        let image_buf = image_buf.to_mut();
+        image_buf.truncate(LSS_IMAGE_HEADER.len());
+        image_buf.reserve(len + 6);
+        image_buf.write_u32::<LE>(len as u32).unwrap();
+        image_buf.push(0x2);
+        image_buf.append(buf);
+        image_buf.push(0xB);
         buf.clear();
-        if base64::decode_config_buf(src, base64::STANDARD, buf).is_ok() {
-            let len = buf.len();
-            let image_buf = image_buf.to_mut();
-            image_buf.truncate(LSS_IMAGE_HEADER.len());
-            image_buf.reserve(len + 6);
-            image_buf.write_u32::<LE>(len as u32).unwrap();
-            image_buf.push(0x2);
-            image_buf.append(buf);
-            image_buf.push(0xB);
-            buf.clear();
-            vec_as_string(buf, |s| {
-                base64::encode_config_buf(image_buf, base64::STANDARD, s)
-            });
-            return scoped(writer, tag, buf.is_empty(), |writer| {
-                writer.write_event(Event::CData(BytesText::borrowed(buf)))?;
-                Ok(())
-            });
-        }
+        vec_as_string(buf, |s| {
+            base64::encode_config_buf(image_buf, base64::STANDARD, s)
+        });
+        return scoped(writer, tag, buf.is_empty(), |writer| {
+            writer.write_event(Event::CData(BytesText::borrowed(buf)))?;
+            Ok(())
+        });
+    } else {
+        writer.write_event(Event::Empty(tag))?;
+        Ok(())
     }
-    writer.write_event(Event::Empty(tag))?;
-    Ok(())
 }
 
 fn fmt_date(date: DateTime<Utc>, buf: &mut Vec<u8>) -> &[u8] {
