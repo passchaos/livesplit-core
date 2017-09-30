@@ -3,8 +3,8 @@ extern crate livesplit_core;
 mod parse {
     use std::fs::File;
     use std::io::BufReader;
-    use livesplit_core::run::parser::{livesplit, llanfair, llanfair_gered, time_split_tracker,
-                                      urn, wsplit, llanfair2};
+    use livesplit_core::run::parser::{livesplit, llanfair, llanfair_gered, splitty,
+                                      time_split_tracker, urn, wsplit, llanfair2};
 
     fn file(path: &str) -> BufReader<File> {
         BufReader::new(File::open(path).unwrap())
@@ -107,5 +107,10 @@ mod parse {
     #[test]
     fn urn() {
         urn::parse(file("tests/run_files/urn.json")).unwrap();
+    }
+
+    #[test]
+    fn splitty() {
+        splitty::parse(file("tests/run_files/splitty.json")).unwrap();
     }
 }

@@ -1,0 +1,22 @@
+{
+    "timer_name": "Timer Name",
+    "run_name": "Game and Category",
+    "hash": "",
+    "start_delay": 0,
+    "run_count": 1,
+    "splits": [
+        {
+            "name": "Split 1",
+            "pb_split": 5123,
+            "pb_duration": 5123,
+            "split_best": 5123
+        },
+        {
+            "name": "Split 2",
+            "pb_split": 10345,
+            "pb_duration": 5222,
+            "split_best": 5222
+        }
+    ],
+    "timer_type": 0
+}
