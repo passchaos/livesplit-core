@@ -1,3 +1,4 @@
+#![feature(nll)]
 #![allow(unknown_lints)]
 #![warn(missing_docs)]
 // Necessary for some larger quick-error based errors.
