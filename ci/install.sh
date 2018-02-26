@@ -29,6 +29,9 @@ main() {
         wasm32-unknown-unknown)
             rustup target install wasm32-unknown-unknown
             ;;
+        java)
+            rustup target install wasm32-unknown-unknown
+            ;;
     esac
 
     # This fetches latest stable release

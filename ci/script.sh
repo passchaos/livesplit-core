@@ -18,6 +18,13 @@ main() {
             cross build -p cdylib --target $TARGET --release
             return
             ;;
+        java)
+            cd capi/java
+            chmod u+x ./make.sh
+            chmod u+x asmble/bin/asmble
+            ./make.sh
+            return
+            ;;
     esac
 
     cross build -p staticlib --target $TARGET

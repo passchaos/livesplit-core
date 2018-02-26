@@ -6,6 +6,11 @@ language: rust
 services: docker
 # sudo: required
 
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
+
 env:
   global:
     - CRATE_NAME=livesplit-core
@@ -22,6 +27,10 @@ matrix:
     # - env: TARGET=thumbv7em-none-eabi
     # - env: TARGET=thumbv7m-none-eab
     # - env: TARGET=thumbv7em-none-eabihf
+
+    # Java
+    - env: TARGET=java
+      rust: nightly
 
     # Web
     - env: TARGET=asmjs-unknown-emscripten
@@ -123,7 +132,7 @@ deploy:
   file_glob: true
   file: $CRATE_NAME-$TRAVIS_TAG-$TARGET.*
   on:
-    condition: $TRAVIS_RUST_VERSION == 'stable' || $TARGET = 'asmjs-unknown-emscripten' || $TARGET == 'wasm32-unknown-emscripten' || $TARGET == 'wasm32-unknown-unknown'
+    condition: $TRAVIS_RUST_VERSION == 'stable' || $TARGET = 'asmjs-unknown-emscripten' || $TARGET == 'wasm32-unknown-emscripten' || $TARGET == 'wasm32-unknown-unknown' || $TARGET == 'java'
     tags: true
   provider: releases
   skip_cleanup: true
