@@ -7,6 +7,7 @@ use jni_cpp;
 
 mod jna;
 mod jni;
+mod wasm;
 
 pub fn write<P: AsRef<Path>>(path: P, classes: &BTreeMap<String, Class>) -> Result<()> {
     let mut path = path.as_ref().to_owned();
@@ -23,6 +24,11 @@ pub fn write<P: AsRef<Path>>(path: P, classes: &BTreeMap<String, Class>) -> Resu
 
     path.push("LiveSplitCoreJNI.cpp");
     jni_cpp::write(BufWriter::new(File::create(&path)?), classes)?;
+    path.pop();
+
+    path.push("wasm");
+    create_dir_all(&path)?;
+    wasm::write(&path, classes)?;
     path.pop();
 
     Ok(())

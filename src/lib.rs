@@ -2,6 +2,7 @@
 #![warn(missing_docs)]
 // Necessary for some larger quick-error based errors.
 #![recursion_limit = "128"]
+#![cfg_attr(all(target_arch = "wasm32", target_os = "unknown"), feature(i128_type))]
 
 //! livesplit-core is a library that provides a lot of functionality for creating a speedrun timer.
 //!

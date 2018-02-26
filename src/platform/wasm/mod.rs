@@ -17,6 +17,11 @@ pub extern "C" fn fmod(a: f64, b: f64) -> f64 {
 }
 
 #[no_mangle]
+pub extern "C" fn fmodf(a: f32, b: f32) -> f32 {
+    fmod(a as _, b as _) as _
+}
+
+#[no_mangle]
 pub extern "C" fn alloc(size: usize) -> *mut u8 {
     let mut buf = Vec::with_capacity(size);
     let ptr = buf.as_mut_ptr();

@@ -18,10 +18,11 @@ impl Sub for Instant {
     type Output = Duration;
 
     fn sub(self, rhs: Instant) -> Duration {
-        let secs = (self.0).0 - (rhs.0).0;
-        let nanos = ((secs % 1.0) * 1_000_000_000.0) as _;
-        let secs = secs as _;
-        Duration::new(secs, nanos)
+        let total_nanos = ((self.0).0 - (rhs.0).0) * 1_000_000_000.0;
+        let total_nanos = total_nanos as u128;
+        let secs = total_nanos / 1_000_000_000;
+        let nanos = total_nanos % 1_000_000_000;
+        Duration::new(secs as _, nanos as _)
     }
 }
 
